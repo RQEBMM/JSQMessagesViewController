@@ -158,7 +158,7 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
     _collectionView.dataSource = nil;
     _collectionView.delegate = nil;
     _collectionView = nil;
-    
+
     _inputToolbar.contentView.textView.delegate = nil;
     _inputToolbar.delegate = nil;
     _inputToolbar = nil;
@@ -899,14 +899,19 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
 
 - (void)jsq_adjustInputToolbarHeightConstraintByDelta:(CGFloat)dy
 {
-    self.toolbarHeightConstraint.constant += dy;
+    CGFloat proposedHeight = self.toolbarHeightConstraint.constant + dy;
 
-    if (self.toolbarHeightConstraint.constant < self.inputToolbar.preferredDefaultHeight) {
-        self.toolbarHeightConstraint.constant = self.inputToolbar.preferredDefaultHeight;
+    CGFloat finalHeight = MAX(proposedHeight, self.inputToolbar.preferredDefaultHeight);
+
+    if (self.inputToolbar.maximumHeight != NSNotFound) {
+        finalHeight = MIN(finalHeight, self.inputToolbar.maximumHeight);
     }
 
-    [self.view setNeedsUpdateConstraints];
-    [self.view layoutIfNeeded];
+    if (self.toolbarHeightConstraint.constant != finalHeight) {
+        self.toolbarHeightConstraint.constant = finalHeight;
+        [self.view setNeedsUpdateConstraints];
+        [self.view layoutIfNeeded];
+    }
 }
 
 - (void)jsq_scrollComposerTextViewToBottomAnimated:(BOOL)animated
@@ -1020,7 +1025,7 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
     if (self.navigationController.interactivePopGestureRecognizer) {
         [self.navigationController.interactivePopGestureRecognizer removeTarget:nil
                                                                          action:@selector(jsq_handleInteractivePopGestureRecognizer:)];
-
+        
         if (addAction) {
             [self.navigationController.interactivePopGestureRecognizer addTarget:self
                                                                           action:@selector(jsq_handleInteractivePopGestureRecognizer:)];
